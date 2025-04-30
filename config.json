@@ -1,9 +1,8 @@
 {
     "allowed_users": [
-        50218052
+        111111
     ],
-    "app_id": 892970,
-    "addr": "192.168.1.2",
+    "addr": "127.0.0.1",
     "port": 8080,
     "default_path": "/mnt/media/Downloads",
     "movies_path": "/mnt/media/Movies",
