@@ -156,7 +156,7 @@ def get_name_torrent(message_data, metadata, kp_id = 0):
     return correct_forbidden_characters(name_torrent)
 
 
-load_dotenv(find_dotenv())
+# load_dotenv(find_dotenv()) -- С этой строкой не работает в докере
 TG_BOT_TOKEN = os.getenv('TG_BOT_TOKEN')
 bot = telebot.TeleBot(TG_BOT_TOKEN)
 
