@@ -152,7 +152,7 @@ def get_name_torrent(message_data, metadata, kp_id = 0):
         name_torrent = metadata["data"]['name']
 
     if kp_id > 0:
-        title_folder = title_folder + '.' + 'kp' + str(kp_id)
+        name_torrent = name_torrent + '.' + 'kp' + str(kp_id)
     return correct_forbidden_characters(name_torrent)
 
 
@@ -189,6 +189,9 @@ def echo_all(message):
     try:
         metadata = get_metadata(message_data.get('magnet')) #получаем метаданные торрента
     except requests.exceptions.HTTPError:
+        bot.reply_to(message, "Торрент не найден!")
+        return
+    except requests.exceptions.ReadTimeout:
         bot.reply_to(message, "Торрент не найден!")
         return
 
