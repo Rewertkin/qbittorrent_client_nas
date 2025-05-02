@@ -20,11 +20,11 @@ client = qbittorrentapi.Client(
     password=QBITTORRENT_PASSWORD,
 )
 
-def add_torrent_from_magnet(magnet, path, tags_add = None):
+def add_torrent_from_magnet(magnet, rename = None, path = None, tags_add = None):
     if tags_add is None:
         tags_add = []
-    try: 
-        client.torrents_add(urls=magnet, save_path = path, tags = tags_add)
+    try:
+        client.torrents_add(urls=magnet, rename = rename, save_path = path, tags = tags_add)
     except qbittorrentapi.exceptions.APIError as e:
         return "Ошибка API при добавлении торрента"
     except Exception as e:

@@ -1,3 +1,4 @@
+"""бот для добавления на скачивание на основе переданного сообщения"""
 import os
 import re
 import json
@@ -127,7 +128,7 @@ def get_message_data(message_text):
 def is_file_in_directory(metadata):
     """Проверяет, указана ли папка на верхнем уровне в торренте"""
     #если торрент сразу грузится в папку, то не создаем папку для него
-    #если хоть один файл кладется вне папки, то считаем, что он грузится без папки 
+    #если хоть один файл кладется вне папки, то считаем, что он грузится без папки
     for file in metadata['data']['files']:
         if '/' not in file['path']:
             return False
@@ -140,6 +141,20 @@ def correct_forbidden_characters(folder_name):
     sanitized_name = sanitized_name.lstrip(".").rstrip(".")
     return sanitized_name
 
+def get_name_torrent(message_data, metadata, kp_id = 0):
+    """формирование наименование торрента или папки для скачивания"""
+    title = message_data.get('title', False)
+    year = message_data.get('year', False)
+    #если нет папки 1 уровня в торренте, формируем ее название
+    if title and year:
+        name_torrent = f'{title} ({year})'
+    if not name_torrent:
+        name_torrent = metadata["data"]['name']
+
+    if kp_id > 0:
+        title_folder = title_folder + '.' + 'kp' + str(kp_id)
+    return correct_forbidden_characters(name_torrent)
+
 
 load_dotenv(find_dotenv())
 TG_BOT_TOKEN = os.getenv('TG_BOT_TOKEN')
@@ -150,7 +165,7 @@ with open("config.json", "r", encoding="utf-8") as file_json:
 
 WHITELIST = config["allowed_users"]
 
-@bot.message_handler(func=lambda message: True)  # Обрабатывает все текстовые сообщения  
+@bot.message_handler(func=lambda message: True)  # Обрабатывает все текстовые сообщения
 
 def echo_all(message):
 
@@ -185,25 +200,16 @@ def echo_all(message):
     #подготавливаем путь для скачивания
     tags_add = []
     title_folder = ''
-    if not is_file_in_directory(metadata): 
+    if not is_file_in_directory(metadata):
     #если нет папки 1 уровня в торренте, формируем ее название
-        title = message_data.get('title', False)
-        year = message_data.get('year', False)
-        if title and year:
-            title_folder = f'{title} ({year})'
-
-        if not title_folder:
-            title_folder = metadata["data"]['name']
-
-        if kp_id > 0:
-            title_folder = title_folder + '.' + 'kp' + str(kp_id)
-        correct_forbidden_characters(title_folder)
+        title_folder = get_name_torrent(message_data, metadata, kp_id)
     else:
     #если папка есть, нам надо будет ее переимновать на пост обработке
     #для этого добавим тег, которым пометит скачанную папку скрипт
         if kp_id > 0:
             tags_add = ['kp' + str(kp_id)]
 
+    #определеяем в какую папку скачиваем
     if kp_id > 0:
         if message_data.get('season', False):
             path_download = config['serials_path']
@@ -215,9 +221,12 @@ def echo_all(message):
     if title_folder is not None:
         path_download = path_download + '/' + title_folder
 
+    #добавляем наименование для торрента в клиенте
+    name_torrent = get_name_torrent(message_data, metadata, kp_id)
+
     #добавляем задачу на скачку
     try:
-        result_string = qb.add_torrent_from_magnet(message_data.get('magnet'), path_download, tags_add = tags_add)
+        result_string = qb.add_torrent_from_magnet(message_data.get('magnet'), rename=name_torrent, path=path_download, tags_add = tags_add)
         bot.reply_to(message, result_string + f" Папка: {path_download}")
     except:
         bot.reply_to(message, "Не удалось добавить торрент!")
