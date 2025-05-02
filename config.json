@@ -2,7 +2,7 @@
     "allowed_users": [
         50218052
     ],
-    "addr": "host.docker.internal",
+    "addr": "192.168.1.2",
     "port": 8080,
     "default_path": "/mnt/media/Downloads",
     "movies_path": "/mnt/media/Movies",
