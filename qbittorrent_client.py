@@ -3,7 +3,7 @@ from dotenv import load_dotenv, find_dotenv
 import qbittorrentapi
 import json
 
-# load_dotenv(find_dotenv()) -- С этой строкой не работает в докере
+load_dotenv(find_dotenv())
 
 with open("config.json", "r", encoding="utf-8") as file:
     config = json.load(file)
