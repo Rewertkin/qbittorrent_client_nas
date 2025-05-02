@@ -5,3 +5,8 @@ services:
     build: .
     container_name: qbitt_telegram_bot
     restart: unless-stopped
+    environment:
+      - TG_BOT_TOKEN=${TG_BOT_TOKEN}
+      - KINOPOISK_API=${KINOPOISK_API}
+      - USER=${USER}
+      - PASSWORD=${PASSWORD}
