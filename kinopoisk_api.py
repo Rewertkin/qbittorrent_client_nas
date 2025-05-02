@@ -9,7 +9,7 @@ def get_id_kinopoisk(message_data):
     if message_data['year'] is None or message_data['title'] is None:
         return 0
     
-    load_dotenv(find_dotenv())
+    # load_dotenv(find_dotenv()) -- С этой строкой не работает в докере
     KINOPOISK_API= os.getenv("KINOPOISK_API")
     try: 
         name = message_data['title']
