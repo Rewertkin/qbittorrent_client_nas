@@ -1,17 +1,10 @@
-import os
-from dotenv import load_dotenv, find_dotenv
 import qbittorrentapi
-import json
+from config_data import env_keys, config
 
-load_dotenv(find_dotenv())
-
-with open("config.json", "r", encoding="utf-8") as file:
-    config = json.load(file)
-
-QBITTORRENT_HOST = config['addr']
-QBITTORRENT_PORT = config['port']
-QBITTORRENT_USERNAME = os.getenv('USER')
-QBITTORRENT_PASSWORD = os.getenv('PASSWORD')
+QBITTORRENT_HOST = config.addr
+QBITTORRENT_PORT = config.port
+QBITTORRENT_USERNAME = env_keys.USER
+QBITTORRENT_PASSWORD = env_keys.PASSWORD
 
 client = qbittorrentapi.Client(
     host=QBITTORRENT_HOST,

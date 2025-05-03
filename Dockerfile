@@ -3,4 +3,4 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-CMD ["python", "qbitt_tg.py"]
+CMD ["python", "src/qbitt_tg.py"]
