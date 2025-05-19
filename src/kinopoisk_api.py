@@ -36,6 +36,7 @@ def get_id_kinopoisk(message_data: Message_data):
     try:
         data_kinopoisk = search_movies_kinopoisk(message_data)
     except:
+        print("кинопоиск упал")
         return 0
 
     #уменьшим шорт лист по маркеру года и маркеру многосерийности
