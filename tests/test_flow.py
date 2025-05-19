@@ -1,3 +1,5 @@
+'''Модуль для полного прогона всей цепочки, временное решение.'''
+
 from src.message_tools import Message_data
 import src.kinopoisk_api as kp
 from src.message_tools import Message_data

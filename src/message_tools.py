@@ -156,29 +156,3 @@ class Message_data:
             year=parsed_year,
             season=parsed_season
         )
-
-text = '''[6] #6063871 [rutracker], 2024-09-30 (https://hashurl.ru/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJodHRwczovL3J1dHJhY2tlci5vcmcvZm9ydW0vdmlld3RvcGljLnBocD90PTYwNjM4NzEiLCJjaGF0X2lkIjo1MDIxODA1MiwicmVmZXJlciI6IjFhMzQ1MzA5ZWY2MDAzYmI5OTFhIiwiZXhwIjoxNzQ3NTk4NDg1fQ.Om4J6y5yTCEns8seqE7rdKcj_4V0TgOylFhipMlaygQ):
-Морфий / Morphine (Алексей Балабанов) [2008, Россия, драма, WEB-DL 1080p] Sub (Rus, Eng)
-
-✅ (проверено) | 5.92 GB
-сохранённая копия топика раздачи (https://hashurl.ru/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJodHRwczovL2V4ZnJlZWRvbWlzdC5jb20vZW5jcnlwdGVkLzdlZWQzNTQ1MDFlYmJmMWU4MGQ3Nzk1YThlNjhmMTBhYjg0YzAwNGJkYjI2ZDYyYTczYzkwNmE3Y2UxYWZkZjQiLCJjaGF0X2lkIjo1MDIxODA1MiwicmVmZXJlciI6Im1fMWEzNDUzMDllZjYwMDNiYjk5MWEiLCJleHAiOjE3NTM1OTc1ODV9.oTFaYjhUV39GZFZh9W1tR3URdpCROV8bmaLbQqOF3HE)
-
-magnet:?xt=urn:btih:D506BCDD619AE2D0A12A99873C1EA6391EF3A8CC&tr=http%3A%2F%2Fbt2.t-ru.org%2Fann%3Fmagnet&dn=rutracker-topic-6063871
-
-Открыть magnet-ссылку в вашем клиенте  (https://hashurl.ru/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJtYWduZXQ6P3h0PXVybjpidGloOkQ1MDZCQ0RENjE5QUUyRDBBMTJBOTk4NzNDMUVBNjM5MUVGM0E4Q0MmdHI9aHR0cCUzQSUyRiUyRmJ0Mi50LXJ1Lm9yZyUyRmFubiUzRm1hZ25ldCIsImNoYXRfaWQiOjUwMjE4MDUyLCJyZWZlcmVyIjoibV8xYTM0NTMwOWVmNjAwM2JiOTkxYSIsImV4cCI6MTc0NzU5ODQ4NX0.JgdfxZsvjReAkpO_8U0GDXw1l1QM0592Qsc5pRyc7iA)
-или получить .torrent: /tr_1a345
-
-Оцените раздачу:
-😀: /g_9ac437 или 😞: /r_9ac437
-
-Следить за раздачей: /us_1a345
-Обсудить раздачу. (https://search.exfreedomist.com/comments/D506BCDD619AE2D0A12A99873C1EA6391EF3A8CC)
-Добавить в закладки: /mka_6b1ed
-
-cправка: /help, настройки: /settings'''
-
-message_data = Message_data.prepare_message_data(text)
-
-print(message_data.title)
-print(message_data.alternative_title)
-print(message_data.year)
