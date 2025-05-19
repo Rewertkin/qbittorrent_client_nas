@@ -1,5 +1,5 @@
 import qbittorrentapi
-from config_data import env_keys, config
+from .config_data import env_keys, config
 
 QBITTORRENT_HOST = config.addr
 QBITTORRENT_PORT = config.port

@@ -1,7 +1,7 @@
 '''Модуль для работы с Кинопоиск API'''
 import requests
-from config_data import env_keys
-from message_tools import Message_data
+from .config_data import env_keys
+from .message_tools import Message_data
 
 
 def search_movies_kinopoisk(message_data: Message_data):

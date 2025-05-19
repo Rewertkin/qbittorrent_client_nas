@@ -2,30 +2,12 @@
 import re
 import requests
 import telebot
-import kinopoisk_api as kp
-import qbittorrent_client as qb
-from message_tools import Message_data
-from metadata_tools import Metadata
-from config_data import env_keys, config
+from . import kinopoisk_api as kp
+from . import qbittorrent_client as qb
+from .message_tools import Message_data
+from .metadata_tools import Metadata, get_name_torrent
+from .config_data import env_keys, config
 
-
-def correct_forbidden_characters(folder_name):
-    """проверяем и убираем в наименование запрещенные символы"""
-    forbidden_characters_regex = r'[<>:"/\\|?*\x00-\x1F]'
-    sanitized_name = re.sub(forbidden_characters_regex, '_', folder_name)
-    sanitized_name = sanitized_name.lstrip(".").rstrip(".")
-    return sanitized_name
-
-def get_name_torrent(message_data: Message_data, metadata: Metadata, kp_id = 0):
-    """формирование наименование торрента или папки для скачивания"""
-    if message_data.title and message_data.year:
-        name_torrent = f'{message_data.title} ({message_data.year})'
-    if not name_torrent:
-        name_torrent = metadata.name
-
-    if kp_id > 0:
-        name_torrent = name_torrent + '.' + 'kp' + str(kp_id)
-    return correct_forbidden_characters(name_torrent)
 
 
 TG_BOT_TOKEN = env_keys.TG_BOT_TOKEN

@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import os
 import requests
 from typing import Optional
+from .message_tools import correct_forbidden_characters, Message_data
 
 def get_metadata_api(magnet = None):
     """получить метаданные по магнет ссылке"""
@@ -63,7 +64,7 @@ def is_movies_files(torrent_data):
 class Metadata:
     name: Optional[str] = None
     inDir: Optional[bool] = None
-    isMedia: Optional[bool] = False
+    isMovies: Optional[bool] = False
     files: Optional[list] = None
 
     @classmethod
@@ -75,3 +76,14 @@ class Metadata:
         cls.files = data['data']['files']
         
         return cls
+
+def get_name_torrent(message_data: Message_data, metadata: Metadata, kp_id = 0):
+    """формирование наименование торрента или папки для скачивания"""
+    if message_data.title and message_data.year:
+        name_torrent = f'{message_data.title} ({message_data.year})'
+    if not name_torrent:
+        name_torrent = metadata.name
+
+    if kp_id > 0:
+        name_torrent = name_torrent + '.' + 'kp' + str(kp_id)
+    return correct_forbidden_characters(name_torrent)
