@@ -4,7 +4,7 @@ from .config_data import env_keys
 from .message_tools import Message_data
 
 
-TMDB_API= env_keys.TMDB_API
+TMDB_API = 'Bearer ' + str(env_keys.TMDB_API)
 
 def search_movies_tmdb(message_data: Message_data):
     '''Получить данные через API TMDB'''
