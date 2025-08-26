@@ -23,9 +23,6 @@ def search_movies_tmdb(message_data: Message_data):
         #если заполнено, значит ищем сериал
         url = f"https://api.themoviedb.org/3/search/tv?query={title}&year={year}"
 
-    print(TMDB_API)
-
-
     headers = {
         "accept": "application/json",
         "Authorization": f"{TMDB_API}"
