@@ -22,19 +22,21 @@ def load_config() -> Config:
 
 class Env_keys:
     """класс для работы с апи ключами"""
-    def __init__(self, KINOPOISK_API, TG_BOT_TOKEN, USER, PASSWORD):
+    def __init__(self, KINOPOISK_API, TG_BOT_TOKEN, USER, PASSWORD, TMDB_API):
         # Считываем данные токенов
         self.KINOPOISK_API = KINOPOISK_API
         self.TG_BOT_TOKEN = TG_BOT_TOKEN
         self.USER = USER
         self.PASSWORD = PASSWORD
+        self.TMDB_API = TMDB_API
 
 def load_env() -> Env_keys:
     load_dotenv(find_dotenv())
     return Env_keys(os.getenv('KINOPOISK_API'),
                     os.getenv('TG_BOT_TOKEN'),
                     os.getenv('USER'),
-                    os.getenv('PASSWORD')
+                    os.getenv('PASSWORD'),
+                    os.getenv('TMDB_API')
                     )
 
 config = load_config()

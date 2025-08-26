@@ -3,6 +3,7 @@ import re
 import requests
 import telebot
 from . import kinopoisk_api as kp
+from . import tmdb_api as tmdb
 from . import qbittorrent_client as qb
 from .message_tools import Message_data
 from .metadata_tools import Metadata, get_name_torrent
@@ -49,24 +50,34 @@ def echo_all(message):
     except telebot.apihelper.ApiTelegramException as e:
         bot.reply_to(message, f"Ошибка при отправке сообщения: {e}")
     
-    kp_id = 0
+    id_film = 0
     if metadata.isMovies:
-        kp_id = kp.get_id_kinopoisk(message_data)
+        if config.search_database == 'kp':
+            id_film = kp.get_id_kinopoisk(message_data)
+        elif config.search_database == 'tmdb':
+            id_film = tmdb.get_id_tmdb(message_data)
+    
+    id_suffix = None
+
+    if id_film > 0 and config.search_database == 'kp':
+        id_suffix = 'kp' + str(id_film)
+    elif id_film > 0 and config.search_database == 'tmdb':
+        id_suffix = f'[tmdbid-{id_film}]'
 
     #подготавливаем путь для скачивания
     tags_add = []
     title_folder = ''
     if not metadata.inDir:
     #если нет папки 1 уровня в торренте, формируем ее название
-        title_folder = get_name_torrent(message_data, metadata, kp_id)
+        title_folder = get_name_torrent(message_data, metadata, id_suffix)
     else:
     #если папка есть, нам надо будет ее переимновать на пост обработке
     #для этого добавим тег, которым пометит скачанную папку скрипт
-        if kp_id > 0:
-            tags_add = ['kp' + str(kp_id)]
+        if id_suffix is not None:
+            tags_add = [id_suffix]
 
     #определеяем в какую папку скачиваем
-    if kp_id > 0:
+    if id_suffix is not None:
         if message_data.season:
             path_download = config.serials_path
         else:
@@ -78,7 +89,7 @@ def echo_all(message):
         path_download = path_download + '/' + title_folder
 
     #добавляем наименование для торрента в клиенте
-    name_torrent = get_name_torrent(message_data, metadata, kp_id)
+    name_torrent = get_name_torrent(message_data, metadata, id_suffix)
 
     #добавляем задачу на скачку
     try:

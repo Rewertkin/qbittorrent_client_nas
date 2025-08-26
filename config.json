@@ -6,5 +6,6 @@
     "port": 8080,
     "default_path": "/mnt/media/Downloads",
     "movies_path": "/mnt/media/Movies",
-    "serials_path": "/mnt/media/Serials"
+    "serials_path": "/mnt/media/Serials",
+    "search_database": "tmdb"
 }

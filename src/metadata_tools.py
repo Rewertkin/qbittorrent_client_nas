@@ -77,7 +77,7 @@ class Metadata:
         
         return cls
 
-def get_name_torrent(message_data: Message_data, metadata: Metadata, kp_id = 0):
+def get_name_torrent(message_data: Message_data, metadata: Metadata, id_suffix = ''):
     """формирование наименование торрента или папки для скачивания"""
     if message_data.title and message_data.year:
         name_torrent = f'{message_data.title} ({message_data.year})'
@@ -85,5 +85,5 @@ def get_name_torrent(message_data: Message_data, metadata: Metadata, kp_id = 0):
         name_torrent = metadata.name
 
     if kp_id > 0:
-        name_torrent = name_torrent + '.' + 'kp' + str(kp_id)
+        name_torrent = name_torrent + ' ' + id_suffix
     return correct_forbidden_characters(name_torrent)

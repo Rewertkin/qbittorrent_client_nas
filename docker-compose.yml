@@ -10,3 +10,4 @@ services:
       - KINOPOISK_API=${KINOPOISK_API}
       - USER=${USER}
       - PASSWORD=${PASSWORD}
+      - TMDB_API = ${TMDB_API}
