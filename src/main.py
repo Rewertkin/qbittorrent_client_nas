@@ -1,6 +1,6 @@
 """бот для добавления на скачивание на основе переданного сообщения"""
-import re
 import requests
+import logging
 import telebot
 from . import kinopoisk_api as kp
 from . import tmdb_api as tmdb
@@ -8,8 +8,11 @@ from . import qbittorrent_client as qb
 from .message_tools import Message_data
 from .metadata_tools import Metadata, get_name_torrent
 from .config_data import env_keys, config
+from .config_logger import setup_logging
 
 
+setup_logging()
+logger = logging.getLogger(__name__)
 
 TG_BOT_TOKEN = env_keys.TG_BOT_TOKEN
 bot = telebot.TeleBot(TG_BOT_TOKEN)
@@ -33,6 +36,12 @@ def echo_all(message):
 
     message_data = Message_data.prepare_message_data(message.text) #получаем данные из сообщения
 
+    logger.info(f'Данные из объекта message_data: \
+                title: {message_data.title}, \
+                alternative_title: {message_data.alternative_title}, \
+                year: {message_data.year}, \
+                season {message_data.season}')
+
     if not message_data.magnet:
         bot.reply_to(message, "Магнет ссылка не найдена!")
         return
@@ -45,22 +54,11 @@ def echo_all(message):
         bot.reply_to(message, "Торрент не найден!")
         return
     
-    if metadata.isMovies:
-        TV = 'Нет'
-        if message_data.season is not None:
-            TV = 'Да'
-
-        response_text = f"""\
-        Данные определены: 
-        Название: {message_data.title}/{message_data.alternative_title}
-        Год: {message_data.year}
-        Сериал: {TV}
-        """
-
-        try:
-            bot.reply_to(message, response_text)
-        except telebot.apihelper.ApiTelegramException as e:
-            return  
+    logger.info(f'Данные из объекта metadata: \
+                name: {metadata.name}, \
+                inDir: {metadata.inDir}, \
+                isMovies: {metadata.isMovies}, \
+                files {metadata.files}')
 
     try:
         bot.reply_to(message, "Подготавливаем torrent к скачиванию...")

@@ -1,8 +1,10 @@
 '''Модуль для работы с TMDB API'''
 import requests
+import logging
 from .config_data import env_keys
 from .message_tools import Message_data
 
+logger = logging.getLogger(__name__)
 
 TMDB_API = 'Bearer ' + str(env_keys.TMDB_API)
 
@@ -14,7 +16,7 @@ def search_movies_tmdb(message_data: Message_data):
         title = message_data.alternative_title
     else:
         title = message_data.title
-  
+
     year = message_data.year
 
     if message_data.season is None:
@@ -27,7 +29,9 @@ def search_movies_tmdb(message_data: Message_data):
         "accept": "application/json",
         "Authorization": f"{TMDB_API}"
         }
- 
+    
+    logger.info(f"URL: {url}")
+
     response = requests.get(url, headers=headers, timeout=10)
     response.raise_for_status()
 
@@ -45,7 +49,7 @@ def get_id_tmdb(message_data: Message_data):
 
     if len(data_tmdb) == 1:
         return data_tmdb[0]['id']
-    
+
     #попробуем жадно найти по названию
     data_tmdb_title = [result for result in data_tmdb if result['title'] == message_data.alternative_title]
 
@@ -57,5 +61,5 @@ def get_id_tmdb(message_data: Message_data):
 
     if len(data_tmdb_original_title) == 1:
         return data_tmdb_original_title[0]['id']
-    
+
     return 0
