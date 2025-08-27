@@ -43,4 +43,16 @@ def get_id_tmdb(message_data: Message_data):
     if len(data_tmdb) == 1:
         return data_tmdb[0]['id']
     
+    #попробуем жадно найти по названию
+    data_tmdb_title = [result for result in data_tmdb if result['title'] == message_data.alternative_title]
+
+    if len(data_tmdb_title) == 1:
+        return data_tmdb_title[0]['id']
+
+    #попробуем жадно найти по оригинальному названию
+    data_tmdb_original_title = [result for result in data_tmdb if result['original_title'] == message_data.alternative_title]
+
+    if len(data_tmdb_original_title) == 1:
+        return data_tmdb_original_title[0]['id']
+    
     return 0
