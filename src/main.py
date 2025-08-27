@@ -44,6 +44,23 @@ def echo_all(message):
     except requests.exceptions.ReadTimeout:
         bot.reply_to(message, "Торрент не найден!")
         return
+    
+    if metadata.isMovies:
+        TV = 'Нет'
+        if message_data.season is not None:
+            TV = 'Да'
+
+        response_text = f"""\
+        Данные определены: 
+        Название: {message_data.title}/{message_data.alternative_title}
+        Год: {message_data.year}
+        Сериал: {TV}
+        """
+
+        try:
+            bot.reply_to(message, response_text)
+        except telebot.apihelper.ApiTelegramException as e:
+            return  
 
     try:
         bot.reply_to(message, "Подготавливаем torrent к скачиванию...")
