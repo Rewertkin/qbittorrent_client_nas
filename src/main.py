@@ -13,6 +13,7 @@ from .config_logger import setup_logging
 
 setup_logging()
 logger = logging.getLogger(__name__)
+logger.info("Логирование запущено")
 
 TG_BOT_TOKEN = env_keys.TG_BOT_TOKEN
 bot = telebot.TeleBot(TG_BOT_TOKEN)
