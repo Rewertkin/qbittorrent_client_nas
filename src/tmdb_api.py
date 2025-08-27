@@ -38,7 +38,10 @@ def search_movies_tmdb(message_data: Message_data):
 
 def get_id_tmdb(message_data: Message_data):
     '''Получить id tmdb'''
-    data_tmdb = search_movies_tmdb(message_data)
+    try:
+        data_tmdb = search_movies_tmdb(message_data)
+    except:
+        return 0
 
     if len(data_tmdb) == 1:
         return data_tmdb[0]['id']
