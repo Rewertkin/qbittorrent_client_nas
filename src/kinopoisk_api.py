@@ -1,8 +1,10 @@
 '''Модуль для работы с Кинопоиск API'''
 import requests
+import logging
 from .config_data import env_keys
 from .message_tools import Message_data
 
+logger = logging.getLogger(__name__)
 
 def search_movies_kinopoisk(message_data: Message_data):
     '''Получить данные через API кинопоиска'''
@@ -16,6 +18,8 @@ def search_movies_kinopoisk(message_data: Message_data):
 
     headers = {"accept": "application/json",
             "X-API-KEY": KINOPOISK_API }
+    
+    logger.info(f"URL: {url}")
 
     response = requests.get(url, headers=headers, timeout=10)
     response.raise_for_status()
