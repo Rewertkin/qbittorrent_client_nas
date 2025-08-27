@@ -12,8 +12,8 @@ def search_movies_tmdb(message_data: Message_data):
     '''Получить данные через API TMDB'''
     if message_data.year is None or message_data.title is None:
         return 0
-    logger.info(f"message_data.alternative_title: {message_data.alternative_title}, message_data.title: {message_data.title}")
-    if message_data.alternative_title is None:
+
+    if message_data.alternative_title is not None:
         title = message_data.alternative_title
     else:
         title = message_data.title
