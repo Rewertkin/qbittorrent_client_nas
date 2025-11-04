@@ -11,7 +11,7 @@ TMDB_API = 'Bearer ' + str(env_keys.TMDB_API)
 def search_movies_tmdb(message_data: Message_data):
     '''Получить данные через API TMDB'''
     if message_data.year is None or message_data.title is None:
-        raise Exception
+        return 0
 
     if message_data.alternative_title is not None:
         title = message_data.alternative_title
@@ -52,21 +52,14 @@ def get_id_tmdb(message_data: Message_data):
         return data_tmdb[0]['id']
 
     #попробуем жадно найти по названию
-    if message_data.season is None:
-        data_tmdb_title = [result for result in data_tmdb if result['title'] == message_data.alternative_title]
-    else:
-        #для сериалов другая структура - name
-        data_tmdb_title = [result for result in data_tmdb if result['name'] == message_data.alternative_title]
+    data_tmdb_title = [result for result in data_tmdb if result['title'] == message_data.alternative_title]
 
     if len(data_tmdb_title) == 1:
         return data_tmdb_title[0]['id']
 
     #попробуем жадно найти по оригинальному названию
-    if message_data.season is None:
-        data_tmdb_original_title = [result for result in data_tmdb if result['original_title'] == message_data.alternative_title]
-    else:
-        data_tmdb_original_title = [result for result in data_tmdb if result['name_title'] == message_data.alternative_title]
-        
+    data_tmdb_original_title = [result for result in data_tmdb if result['original_title'] == message_data.alternative_title]
+
     if len(data_tmdb_original_title) == 1:
         return data_tmdb_original_title[0]['id']
 
