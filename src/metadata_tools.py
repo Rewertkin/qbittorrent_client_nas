@@ -3,18 +3,30 @@ import os
 import requests
 from typing import Optional
 from .message_tools import correct_forbidden_characters, Message_data
+from .config_data import config
+from .qbittorrent_client import get_info_from_magnet_by_qb
 
 def get_metadata_api(magnet = None):
     """получить метаданные по магнет ссылке"""
-    if magnet is None:
+    try:
+        source = config.metadata_service
+    except AttributeError: #по умолчанию, если нет конфига, внешний вызываем
+        source = 'external'
+    
+    if source == 'qb':
+        return get_info_from_magnet_by_qb(magnet)
+    elif source == 'external':
+        if magnet is None:
+            return
+        url = 'https://torrentmeta.fly.dev/'
+        data_url = {
+        'query' : magnet
+        }
+        response = requests.post(url, data=data_url, timeout=10)
+        response.raise_for_status()
+        return response.json()
+    else:
         return
-    url = 'https://torrentmeta.fly.dev/'
-    data_url = {
-    'query' : magnet
-    }
-    response = requests.post(url, data=data_url, timeout=10)
-    response.raise_for_status()
-    return response.json()
 
 def is_file_in_directory(data):
     """Проверяет, указана ли папка на верхнем уровне в торренте"""
@@ -87,3 +99,7 @@ def get_name_torrent(message_data: Message_data, metadata: Metadata, id_suffix =
     if id_suffix is not None:
         name_torrent = name_torrent + ' ' + id_suffix
     return correct_forbidden_characters(name_torrent)
+
+magnet_test = 'magnet:?xt=urn:btih:1F6B39581BD5C4B89CC8BDC1543EE255382431B2&dn=kinozal-topic-2133811'
+
+print(get_metadata_api(magnet_test))

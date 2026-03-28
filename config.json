@@ -7,5 +7,6 @@
     "default_path": "/mnt/media/Downloads",
     "movies_path": "/mnt/media/Movies",
     "serials_path": "/mnt/media/Serials",
-    "search_database": "tmdb"
+    "search_database": "tmdb",
+    "metadata_service": "qb"
 }
