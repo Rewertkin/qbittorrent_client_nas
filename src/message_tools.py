@@ -20,6 +20,13 @@ def has_latin(text: str) -> bool:
     return bool(re.search(r'[a-zA-Z]', text))
 
 
+def normalize_title(text: Optional[str]) -> str:
+    """Название для сравнения: без регистра, ё = е, лишние пробелы убраны"""
+    if not text:
+        return ''
+    return ' '.join(text.casefold().replace('ё', 'е').split())
+
+
 def split_titles(text_before_year: str) -> List[str]:
     """Разбить строку до года на список названий.
     Пример: 'Дорога, дорога домой / На заднем сиденье / The Way Way Back (Нат Факсон / Nat Faxon)'

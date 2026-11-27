@@ -2,7 +2,7 @@
 import logging
 import requests
 from .config_data import env_keys
-from .message_tools import Message_data, has_cyrillic
+from .message_tools import Message_data, has_cyrillic, normalize_title
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,9 @@ def search_movies_tmdb(message_data: Message_data, title: str):
         # если заполнен сезон, значит ищем сериал
         url = "https://api.themoviedb.org/3/search/tv"
     # year у сериалов ищет и по датам выхода эпизодов, что подходит для 2+ сезонов
-    params = {"query": title, "year": message_data.year}
+    # language=ru-RU: поле title/name приходит на русском, original_title - на языке оригинала,
+    # так русские названия из сообщения можно сравнить и с зарубежными, и с русскими фильмами
+    params = {"query": title, "year": message_data.year, "language": "ru-RU"}
 
     headers = {
         "accept": "application/json",
@@ -71,9 +73,9 @@ def pick_tmdb_id(results, message_data: Message_data):
     else:
         keys = ('name', 'original_name')
 
-    titles = {t.casefold() for t in message_data.titles + [message_data.alternative_title] if t}
+    titles = {normalize_title(t) for t in message_data.titles + [message_data.alternative_title] if t}
     for key in keys:
-        matched = [r for r in results if (r.get(key) or '').casefold() in titles]
+        matched = [r for r in results if normalize_title(r.get(key)) in titles]
         if len(matched) == 1:
             return matched[0]['id']
     return 0

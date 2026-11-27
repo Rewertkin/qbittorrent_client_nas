@@ -2,7 +2,7 @@
 import logging
 import requests
 from .config_data import env_keys
-from .message_tools import Message_data, has_cyrillic
+from .message_tools import Message_data, has_cyrillic, normalize_title
 
 logger = logging.getLogger(__name__)
 
@@ -43,11 +43,11 @@ def pick_kinopoisk_id(data_kinopoisk, message_data: Message_data):
     if len(data_film) == 1:
         return data_film[0]['id']
 
-    titles = {t.casefold() for t in message_data.titles + [message_data.title, message_data.alternative_title] if t}
+    titles = {normalize_title(t) for t in message_data.titles + [message_data.title, message_data.alternative_title] if t}
 
     # попробуем найти по альтернативному (оригинальному) названию, потом по локализованному
     for key in ('alternativeName', 'enName', 'name'):
-        matched = [docs for docs in data_film if (docs.get(key) or '').casefold() in titles]
+        matched = [docs for docs in data_film if normalize_title(docs.get(key)) in titles]
         if len(matched) == 1:
             return matched[0]['id']
 

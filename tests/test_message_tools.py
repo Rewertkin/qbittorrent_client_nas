@@ -107,6 +107,31 @@ EXPECTED_WAY_WAY_BACK = {
     "title": "Дорога, дорога домой", "alternative_title": "The Way Way Back", "year": 2013, "season": None
 }
 
+MESSAGE_SUDBA = """4] #3379954 [rutracker], 2018-03-09:
+Судьба человека (Сергей Бондарчук) [1959, СССР, Военный, драма, DVD9] RUSCICO (PAL)
+
+✅ (проверено) | 7.39 GB | [[список файлов]](https://download.exfreedomist.com/files/86FE0D99EAE048D89F11A15B4ED47D9DD69E67F9)
+
+
+```
+magnet:?xt=urn:btih:86FE0D99EAE048D89F11A15B4ED47D9DD69E67F9&tr=http%3A%2F%2Fbt3.t-ru.org%2Fann%3Fmagnet&dn=rutracker-topic-3379954
+```
+"""
+EXPECTED_SUDBA = {
+    "magnet": "magnet:?xt=urn:btih:86FE0D99EAE048D89F11A15B4ED47D9DD69E67F9&tr=http%3A%2F%2Fbt3.t-ru.org%2Fann%3Fmagnet&dn=rutracker-topic-3379954",
+    "title": "Судьба человека", "alternative_title": None, "year": 1959, "season": None
+}
+
+# русский фильм, у режиссера в скобках есть '/'
+MESSAGE_BRAT = """[1] #1 [rutracker], 2020-01-01:
+Брат (Алексей Балабанов / Aleksey Balabanov) [1997, Россия, боевик, драма, BDRip 1080p]
+magnet:?xt=urn:btih:DDDD
+"""
+EXPECTED_BRAT = {
+    "magnet": "magnet:?xt=urn:btih:DDDD",
+    "title": "Брат", "alternative_title": None, "year": 1997, "season": None
+}
+
 
 @pytest.mark.parametrize(
     "message_text, expected_data",
@@ -117,6 +142,8 @@ EXPECTED_WAY_WAY_BACK = {
         (MESSAGE_GTO, EXPECTED_GTO),
         (MESSAGE_GENERATION_KILL, EXPECTED_GENERATION_KILL),
         (MESSAGE_WAY_WAY_BACK, EXPECTED_WAY_WAY_BACK),
+        (MESSAGE_SUDBA, EXPECTED_SUDBA),
+        (MESSAGE_BRAT, EXPECTED_BRAT),
     ]
 )
 def test_prepare_message_data(message_text, expected_data):
