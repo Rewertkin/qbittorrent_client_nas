@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   telegram-bot:
     build: .
@@ -8,6 +6,6 @@ services:
     environment:
       - TG_BOT_TOKEN=${TG_BOT_TOKEN}
       - KINOPOISK_API=${KINOPOISK_API}
-      - USER=${USER}
-      - PASSWORD=${PASSWORD}
+      - QB_USER=${QB_USER}
+      - QB_PASSWORD=${QB_PASSWORD}
       - TMDB_API=${TMDB_API}

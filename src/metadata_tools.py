@@ -1,10 +1,19 @@
 from dataclasses import dataclass
+import logging
 import os
 import requests
 from typing import Optional
 from .message_tools import correct_forbidden_characters, Message_data
 from .config_data import config
 from .qbittorrent_client import get_info_from_magnet_by_qb
+
+logger = logging.getLogger(__name__)
+
+
+class MetadataError(Exception):
+    """Не удалось получить метаданные торрента"""
+    pass
+
 
 def get_metadata_api(magnet = None):
     """получить метаданные по магнет ссылке"""
@@ -32,7 +41,10 @@ def is_file_in_directory(data):
     """Проверяет, указана ли папка на верхнем уровне в торренте"""
     #если торрент сразу грузится в папку, то не создаем папку для него
     #если хоть один файл кладется вне папки, то считаем, что он грузится без папки
-    for file in data['data']['files']:
+    files = data['data'].get('files', [])
+    if not files:
+        return False
+    for file in files:
         if '/' not in file['path']:
             return False
     return True
@@ -67,7 +79,7 @@ def is_movies_files(torrent_data):
                 return True # Нашли медиафайл, дальше можно не искать
 
     except (AttributeError, TypeError, KeyError):
-        print("Предупреждение: Некорректная структура данных торрента.")
+        logger.warning("Некорректная структура данных торрента")
         return False
 
     return False
@@ -80,18 +92,20 @@ class Metadata:
     files: Optional[list] = None
 
     @classmethod
-    def prepare_from_magnet(cls, magnet):
+    def prepare_from_magnet(cls, magnet) -> 'Metadata':
         data = get_metadata_api(magnet)
-        cls.name = data["data"]['name']
-        cls.inDir = is_file_in_directory(data)
-        cls.isMovies = is_movies_files(data)
-        cls.files = data['data']['files']
-        
-        return cls
+        if not data or 'data' not in data:
+            raise MetadataError("Не удалось получить метаданные торрента")
+        return cls(
+            name=data['data'].get('name'),
+            inDir=is_file_in_directory(data),
+            isMovies=is_movies_files(data),
+            files=data['data'].get('files', []),
+        )
 
 def get_name_torrent(message_data: Message_data, metadata: Metadata, id_suffix = None):
     """формирование наименование торрента или папки для скачивания"""
-    name_torrent = metadata.name
+    name_torrent = metadata.name or 'Без названия'
 
     if message_data.title and message_data.year:
         name_torrent = f'{message_data.title} ({message_data.year})'
@@ -99,7 +113,3 @@ def get_name_torrent(message_data: Message_data, metadata: Metadata, id_suffix =
     if id_suffix is not None:
         name_torrent = name_torrent + ' ' + id_suffix
     return correct_forbidden_characters(name_torrent)
-
-magnet_test = 'magnet:?xt=urn:btih:1F6B39581BD5C4B89CC8BDC1543EE255382431B2&dn=kinozal-topic-2133811'
-
-print(get_metadata_api(magnet_test))
