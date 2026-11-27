@@ -15,8 +15,9 @@
 ## .env
 - KINOPOISK_API - токкен кинопоиска
 - TG_BOT_TOKEN - токкен телеграмм бота 
-- USER - пользователь qbittorent 
-- PASSWORD - пароль пользователя qbittorent 
+- TMDB_API - токен TMDB (API Read Access Token), нужен при search_database = "tmdb"
+- QB_USER - пользователь qbittorent (раньше USER; переименовано, т.к. USER - системная переменная ОС и перекрывала значение из .env)
+- QB_PASSWORD - пароль пользователя qbittorent (раньше PASSWORD)
 
 ## config.json
 - allowed_users - список id telegramm пользователей, кому разрешен доступ
@@ -26,3 +27,8 @@
 - movies_path - папка для скачивания фильмов
 - serials_path - папка для скачивания сериалов
 - search_database - указывает, какая система будет использовать для распознования и какой идентификатор требуется указывать. Возможные значения: "kp"(Кинопоиск) или "tmdb"
+- metadata_service - откуда брать метаданные торрента (список файлов). "qb" - через сам qBittorrent (торрент временно добавляется и удаляется; если торрент уже есть в клиенте, он не трогается), "external" - через сервис torrentmeta.fly.dev. По умолчанию "external"
+
+## Тесты
+- `pytest` - быстрые тесты без сети
+- `pytest -m integration` - тесты с реальными запросами к API (нужен .env с токенами)
