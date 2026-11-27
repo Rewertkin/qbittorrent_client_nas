@@ -35,3 +35,25 @@ def test_allowed_users_fallback_to_config():
 
 def test_allowed_users_not_set_anywhere():
     assert get_allowed_users(env(None), Config({})) == []
+
+
+# --- понятные ошибки qBittorrent ---------------------------------------------
+from unittest.mock import patch
+import qbittorrentapi
+import src.qbittorrent_client as qb
+
+
+def test_describe_login_failed():
+    assert "QB_USER" in qb.describe_error(qbittorrentapi.LoginFailed())
+
+
+def test_describe_empty_exception_not_blank():
+    class SilentError(Exception):
+        pass
+    assert qb.describe_error(SilentError()) == "SilentError"
+
+
+def test_check_connection_without_credentials():
+    with patch.object(qb, "QBITTORRENT_USERNAME", None):
+        with pytest.raises(qbittorrentapi.LoginFailed):
+            qb.check_connection()

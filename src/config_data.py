@@ -59,8 +59,6 @@ def load_env() -> Env_keys:
     # (имя пользователя ОС), она перекрывала значение из .env. Поэтому QB_USER/QB_PASSWORD.
     qb_user = os.getenv('QB_USER')
     qb_password = os.getenv('QB_PASSWORD')
-    if qb_user is None or qb_password is None:
-        logger.warning("Не заданы QB_USER/QB_PASSWORD в .env - подключение к qBittorrent может не работать")
     return Env_keys(os.getenv('KINOPOISK_API'),
                     os.getenv('TG_BOT_TOKEN'),
                     qb_user,
