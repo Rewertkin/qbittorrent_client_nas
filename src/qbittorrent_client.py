@@ -73,7 +73,12 @@ def add_torrent_from_magnet(magnet, rename=None, path=None, tags_add=None):
 def _wait_files(info_hash):
     """Ждем, пока qBittorrent получит метаданные и список файлов"""
     for _ in range(METADATA_MAX_RETRIES):
-        files = client.torrents_files(info_hash)
+        try:
+            files = client.torrents_files(info_hash)
+        except qbittorrentapi.NotFound404Error:
+            # torrents_add возвращает "Ok." раньше, чем торрент появится в клиенте,
+            # поэтому первые запросы могут получить 404 - просто ждем дальше
+            files = None
         if files:
             return files
         time.sleep(METADATA_RETRY_DELAY)

@@ -131,6 +131,20 @@ def test_kinopoisk_no_year_returns_zero():
     get.assert_not_called()
 
 
+def test_qb_metadata_waits_when_torrent_not_registered_yet():
+    # сразу после torrents_add qBittorrent может ответить 404 на запрос файлов
+    import qbittorrentapi
+    client = make_client(existing=False)
+    client.torrents_files.side_effect = [
+        qbittorrentapi.NotFound404Error("Torrent hash not found"),
+        qbittorrentapi.NotFound404Error("Torrent hash not found"),
+        [],
+        [{"name": "Film/film.mkv", "size": 1}],
+    ]
+    with patch.object(qb, "client", client), patch.object(qb, "METADATA_RETRY_DELAY", 0):
+        data = qb.get_info_from_magnet_by_qb(f"magnet:?xt=urn:btih:{HEX_HASH}")
+    assert data["data"]["files"][0]["path"] == "Film/film.mkv"
+    assert client.torrents_files.call_count == 4
 # --- несколько русских названий ----------------------------------------------
 WAY_BACK = Message_data(title="Дорога, дорога домой", alternative_title="The Way Way Back", year=2013,
                         titles=["Дорога, дорога домой", "На заднем сиденье", "The Way Way Back"])
