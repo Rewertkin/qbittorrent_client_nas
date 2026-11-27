@@ -54,6 +54,9 @@ def process_message(message):
         safe_reply(message, "Магнет ссылка не найдена!")
         return
 
+    if getattr(config, 'metadata_service', 'external') == 'qb':
+        safe_reply(message, "Получаем список файлов через qBittorrent, это может занять до минуты...")
+
     try:
         metadata = Metadata.prepare_from_magnet(message_data.magnet)  # получаем метаданные торрента
     except Exception as e:

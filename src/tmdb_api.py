@@ -2,7 +2,7 @@
 import logging
 import requests
 from .config_data import env_keys
-from .message_tools import Message_data
+from .message_tools import Message_data, has_cyrillic
 
 logger = logging.getLogger(__name__)
 
@@ -14,24 +14,32 @@ class TmdbNotFound(Exception):
     pass
 
 
-def search_movies_tmdb(message_data: Message_data):
-    '''Получить данные через API TMDB'''
-    if message_data.year is None or message_data.title is None:
-        raise TmdbNotFound("В сообщении нет названия или года")
+def search_query_order(message_data: Message_data):
+    """Порядок названий для поиска: сначала альтернативное (обычно английское),
+    потом остальные латинские, потом русские. Без повторов."""
+    ordered = [message_data.alternative_title]
+    ordered += [t for t in message_data.titles if not has_cyrillic(t)]
+    ordered += [t for t in message_data.titles if has_cyrillic(t)]
+    ordered.append(message_data.title)
+    result = []
+    for t in ordered:
+        if t and t not in result:
+            result.append(t)
+    return result
 
-    if message_data.alternative_title is not None:
-        title = message_data.alternative_title
-    else:
-        title = message_data.title
+
+def search_movies_tmdb(message_data: Message_data, title: str):
+    '''Получить данные через API TMDB по одному названию'''
+    if message_data.year is None or not title:
+        raise TmdbNotFound("В сообщении нет названия или года")
 
     if message_data.season is None:
         url = "https://api.themoviedb.org/3/search/movie"
-        params = {"query": title, "year": message_data.year}
     else:
         # если заполнен сезон, значит ищем сериал
         url = "https://api.themoviedb.org/3/search/tv"
-        # year у сериалов ищет и по датам выхода эпизодов, что подходит для 2+ сезонов
-        params = {"query": title, "year": message_data.year}
+    # year у сериалов ищет и по датам выхода эпизодов, что подходит для 2+ сезонов
+    params = {"query": title, "year": message_data.year}
 
     headers = {
         "accept": "application/json",
@@ -51,34 +59,40 @@ def search_movies_tmdb(message_data: Message_data):
     return data['results']
 
 
-def get_id_tmdb(message_data: Message_data):
-    '''Получить id tmdb'''
-    try:
-        data_tmdb = search_movies_tmdb(message_data)
-    except TmdbNotFound as e:
-        logger.info(str(e))
-        return 0
-    except requests.exceptions.RequestException:
-        logger.exception("Ошибка запроса к TMDB")
-        return 0
-
-    if len(data_tmdb) == 1:
-        return data_tmdb[0]['id']
+def pick_tmdb_id(results, message_data: Message_data):
+    """Выбрать id из результатов поиска: единственный результат
+    или единственное совпадение по любому из названий из сообщения"""
+    if len(results) == 1:
+        return results[0]['id']
 
     # у фильмов поля title/original_title, у сериалов name/original_name
     if message_data.season is None:
-        title_key, original_key = 'title', 'original_title'
+        keys = ('title', 'original_title')
     else:
-        title_key, original_key = 'name', 'original_name'
+        keys = ('name', 'original_name')
 
-    # попробуем найти по локализованному названию
-    data_tmdb_title = [r for r in data_tmdb if r.get(title_key) == message_data.alternative_title]
-    if len(data_tmdb_title) == 1:
-        return data_tmdb_title[0]['id']
+    titles = {t.casefold() for t in message_data.titles + [message_data.alternative_title] if t}
+    for key in keys:
+        matched = [r for r in results if (r.get(key) or '').casefold() in titles]
+        if len(matched) == 1:
+            return matched[0]['id']
+    return 0
 
-    # попробуем найти по оригинальному названию
-    data_tmdb_original_title = [r for r in data_tmdb if r.get(original_key) == message_data.alternative_title]
-    if len(data_tmdb_original_title) == 1:
-        return data_tmdb_original_title[0]['id']
+
+def get_id_tmdb(message_data: Message_data):
+    '''Получить id tmdb, перебирая все названия из сообщения'''
+    for title in search_query_order(message_data):
+        try:
+            results = search_movies_tmdb(message_data, title)
+        except TmdbNotFound as e:
+            logger.info(str(e))
+            continue
+        except requests.exceptions.RequestException:
+            logger.exception("Ошибка запроса к TMDB")
+            return 0
+
+        id_tmdb = pick_tmdb_id(results, message_data)
+        if id_tmdb:
+            return id_tmdb
 
     return 0
