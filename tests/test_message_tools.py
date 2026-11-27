@@ -64,7 +64,7 @@ magnet:?xt=urn:btih:CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 """
 EXPECTED_DUDE_IN_ME = {
     "magnet": "magnet:?xt=urn:btih:CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
-    "title": "Тот, кто сидит внутри", "alternative_title": "Мужик внутри меня", "year": 2019, "season": None
+    "title": "Тот, кто сидит внутри", "alternative_title": "The Dude In Me", "year": 2019, "season": None
 }
 
 MESSAGE_GTO = """[4] #5257365 [rutracker], 2025-03-29 (...):
@@ -89,6 +89,49 @@ EXPECTED_GENERATION_KILL = {
     "title": "Поколение убийц", "alternative_title": "Generation Kill", "year": 2008, "season": "1"
 }
 
+MESSAGE_WAY_WAY_BACK = """[5] #4672159 [rutracker], 2014-03-31:
+Дорога, дорога домой / На заднем сиденье / The Way Way Back (Нат Факсон / Nat Faxon, Джим Рэш / Jim Rash) [2013, США, комедия, драма, BDRip 720p] DVO (OzzTV) + MVO (Paradox) + VO (Andi) + Sub (Rus, Eng) + Original (Eng)
+
+✅ (проверено) | 8.26 GB | [[список файлов]](https://download.exfreedomist.com/files/780061DE818C557F1B9C33C8A3964C6746CF98A8)
+
+
+```
+magnet:?xt=urn:btih:780061DE818C557F1B9C33C8A3964C6746CF98A8&tr=http%3A%2F%2Fbt4.t-ru.org%2Fann%3Fmagnet&dn=rutracker-topic-4672159
+```
+
+[Открыть magnet](https://download.exfreedomist.com/r/36H3Q35X6F3PBWADBZMYUPSK6M)
+или получить .torrent: /tr_0d8b3
+"""
+EXPECTED_WAY_WAY_BACK = {
+    "magnet": "magnet:?xt=urn:btih:780061DE818C557F1B9C33C8A3964C6746CF98A8&tr=http%3A%2F%2Fbt4.t-ru.org%2Fann%3Fmagnet&dn=rutracker-topic-4672159",
+    "title": "Дорога, дорога домой", "alternative_title": "The Way Way Back", "year": 2013, "season": None
+}
+
+MESSAGE_SUDBA = """4] #3379954 [rutracker], 2018-03-09:
+Судьба человека (Сергей Бондарчук) [1959, СССР, Военный, драма, DVD9] RUSCICO (PAL)
+
+✅ (проверено) | 7.39 GB | [[список файлов]](https://download.exfreedomist.com/files/86FE0D99EAE048D89F11A15B4ED47D9DD69E67F9)
+
+
+```
+magnet:?xt=urn:btih:86FE0D99EAE048D89F11A15B4ED47D9DD69E67F9&tr=http%3A%2F%2Fbt3.t-ru.org%2Fann%3Fmagnet&dn=rutracker-topic-3379954
+```
+"""
+EXPECTED_SUDBA = {
+    "magnet": "magnet:?xt=urn:btih:86FE0D99EAE048D89F11A15B4ED47D9DD69E67F9&tr=http%3A%2F%2Fbt3.t-ru.org%2Fann%3Fmagnet&dn=rutracker-topic-3379954",
+    "title": "Судьба человека", "alternative_title": None, "year": 1959, "season": None
+}
+
+# русский фильм, у режиссера в скобках есть '/'
+MESSAGE_BRAT = """[1] #1 [rutracker], 2020-01-01:
+Брат (Алексей Балабанов / Aleksey Balabanov) [1997, Россия, боевик, драма, BDRip 1080p]
+magnet:?xt=urn:btih:DDDD
+"""
+EXPECTED_BRAT = {
+    "magnet": "magnet:?xt=urn:btih:DDDD",
+    "title": "Брат", "alternative_title": None, "year": 1997, "season": None
+}
+
 
 @pytest.mark.parametrize(
     "message_text, expected_data",
@@ -97,7 +140,10 @@ EXPECTED_GENERATION_KILL = {
         (MESSAGE_TAKING_CHANCE, EXPECTED_TAKING_CHANCE),
         (MESSAGE_DUDE_IN_ME, EXPECTED_DUDE_IN_ME),
         (MESSAGE_GTO, EXPECTED_GTO),
-        (MESSAGE_GENERATION_KILL, EXPECTED_GENERATION_KILL)   
+        (MESSAGE_GENERATION_KILL, EXPECTED_GENERATION_KILL),
+        (MESSAGE_WAY_WAY_BACK, EXPECTED_WAY_WAY_BACK),
+        (MESSAGE_SUDBA, EXPECTED_SUDBA),
+        (MESSAGE_BRAT, EXPECTED_BRAT),
     ]
 )
 def test_prepare_message_data(message_text, expected_data):
@@ -113,3 +159,16 @@ def test_prepare_message_data(message_text, expected_data):
 
     result = Message_data.prepare_message_data(message_text)
     assert_message_data_equals(result, expected_data)
+
+@pytest.mark.parametrize(
+    "message_text, expected_titles",
+    [
+        (MESSAGE_WAY_WAY_BACK, ["Дорога, дорога домой", "На заднем сиденье", "The Way Way Back"]),
+        (MESSAGE_DUDE_IN_ME, ["Тот, кто сидит внутри", "Мужик внутри меня", "Nae aneui geunom", "The Dude In Me"]),
+        (MESSAGE_GENERATION_KILL, ["Поколение убийц", "Generation Kill"]),
+        (MESSAGE_GTO, ["Крутой учитель Онизука", "GTO: Great Teacher Onizuka"]),
+        (MESSAGE_TAKING_CHANCE, ["Добровольцы (Забирая Чэнса)", "Taking Chance"]),
+    ]
+)
+def test_prepare_message_data_titles(message_text, expected_titles):
+    assert Message_data.prepare_message_data(message_text).titles == expected_titles

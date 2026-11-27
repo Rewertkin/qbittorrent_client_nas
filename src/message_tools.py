@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 import re
 
 def correct_forbidden_characters(folder_name):
@@ -7,6 +7,54 @@ def correct_forbidden_characters(folder_name):
     sanitized_name = re.sub(forbidden_characters_regex, '_', folder_name)
     sanitized_name = sanitized_name.lstrip(".").rstrip(".")
     return sanitized_name
+
+# Сегменты вида "Сезон: 1", "Серии: 1-7 из 7" - это не названия
+NOT_TITLE_SEGMENT_REGEX = re.compile(r'^(?:сезон|сезоны|серии|серия|season|seasons|episodes?)\b', re.IGNORECASE)
+
+
+def has_cyrillic(text: str) -> bool:
+    return bool(re.search(r'[а-яА-ЯёЁ]', text))
+
+
+def has_latin(text: str) -> bool:
+    return bool(re.search(r'[a-zA-Z]', text))
+
+
+def normalize_title(text: Optional[str]) -> str:
+    """Название для сравнения: без регистра, ё = е, лишние пробелы убраны"""
+    if not text:
+        return ''
+    return ' '.join(text.casefold().replace('ё', 'е').split())
+
+
+def split_titles(text_before_year: str) -> List[str]:
+    """Разбить строку до года на список названий.
+    Пример: 'Дорога, дорога домой / На заднем сиденье / The Way Way Back (Нат Факсон / Nat Faxon)'
+    -> ['Дорога, дорога домой', 'На заднем сиденье', 'The Way Way Back']"""
+    # всё после первой '[' - это уже теги раздачи ([TV], [43 из 43] и т.п.)
+    text = text_before_year.split('[', 1)[0].strip()
+    # последняя группа в скобках - режиссеры, в ней тоже бывает '/', поэтому убираем до разбиения
+    text = re.sub(r'\s*\([^()]*\)\s*$', '', text).strip()
+
+    titles = []
+    for segment in text.split('/'):
+        segment = segment.strip()
+        if not segment or NOT_TITLE_SEGMENT_REGEX.match(segment):
+            continue
+        titles.append(segment)
+    return titles
+
+
+def choose_alternative_title(titles: List[str]) -> Optional[str]:
+    """Альтернативное название: последнее латинское (обычно английское/оригинальное),
+    если латинских нет - второе по счету."""
+    if len(titles) < 2:
+        return None
+    latin_titles = [t for t in titles[1:] if has_latin(t) and not has_cyrillic(t)]
+    if latin_titles:
+        return latin_titles[-1]
+    return titles[1]
+
 
 class Message_data:
     """класс для работы данными из сообщения"""
@@ -18,16 +66,18 @@ class Message_data:
 
     def __init__(self, magnet: Optional[str] = None, title: Optional[str] = None,
                  alternative_title: Optional[str] = None, year: Optional[int] = None,
-                 season: Optional[str] = None):
+                 season: Optional[str] = None, titles: Optional[List[str]] = None):
         self.magnet = magnet
         self.title = title
         self.alternative_title = alternative_title
         self.year = year
         self.season = season
+        # все найденные названия в порядке из сообщения (русские, английские, оригинальные)
+        self.titles = list(titles) if titles else [t for t in (title, alternative_title) if t]
 
     def __repr__(self): # Для удобного вывода объекта
         return (f"Message_data(title='{self.title}', alt_title='{self.alternative_title}', "
-                f"year={self.year}, season='{self.season}', magnet_present={bool(self.magnet)})")
+                f"year={self.year}, season='{self.season}', titles={self.titles}, magnet_present={bool(self.magnet)})")
 
 
     @classmethod
@@ -39,6 +89,7 @@ class Message_data:
         parsed_alternative_title: Optional[str] = None
         parsed_year: Optional[int] = None
         parsed_season: Optional[str] = None
+        parsed_titles: List[str] = []
         title_string: Optional[str] = None # Инициализируем title_string
 
         # найдем магнет ссылку
@@ -83,23 +134,12 @@ class Message_data:
             except ValueError:
                 parsed_year = None
 
-            # Текст до года (или до квадратной скобки с годом)
-            text_before_year = title_string[:year_match.start()].strip()
-
-            # Пытаемся извлечь русское и альтернативное название
-            # (Русское название) / (Английское название) ...
-            title_alt_match = re.match(r"^(.*?)\s*/\s*([^/([]+)", text_before_year)
-            if title_alt_match:
-                parsed_title = title_alt_match.group(1).strip()
-                # Убираем возможное (Режиссер) из альтернативного названия
-                parsed_alternative_title = re.sub(r"\s+\([^)]+\)\s*$", "", title_alt_match.group(2).strip()).strip()
-            else:
-                # Если нет '/', то все до года (и до режиссера в скобках, если есть) - это основное название
-                # Убираем (Режиссер) из основного названия, если он там есть в конце
-                parsed_title = re.sub(r"\s+\([^)]+\)\s*$", "", text_before_year).strip()
+            parsed_titles = split_titles(title_string[:year_match.start()])
+            if parsed_titles:
+                parsed_title = parsed_titles[0]
+                parsed_alternative_title = choose_alternative_title(parsed_titles)
         else:
             # Если год не найден стандартным способом, просто берем всю строку как название
-            # Это маловероятно для ваших примеров, но как запасной вариант
             parsed_title = title_string
 
 
@@ -154,5 +194,6 @@ class Message_data:
             title=parsed_title,
             alternative_title=parsed_alternative_title,
             year=parsed_year,
-            season=parsed_season
+            season=parsed_season,
+            titles=parsed_titles
         )

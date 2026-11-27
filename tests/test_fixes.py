@@ -129,3 +129,85 @@ def test_kinopoisk_no_year_returns_zero():
     with patch("src.kinopoisk_api.requests.get") as get:
         assert kp.get_id_kinopoisk(Message_data(title="Фильм")) == 0
     get.assert_not_called()
+
+
+# --- несколько русских названий ----------------------------------------------
+WAY_BACK = Message_data(title="Дорога, дорога домой", alternative_title="The Way Way Back", year=2013,
+                        titles=["Дорога, дорога домой", "На заднем сиденье", "The Way Way Back"])
+
+
+def test_tmdb_tries_next_title_when_not_found():
+    def fake_get(url, headers, params, timeout):
+        if params["query"] == "На заднем сиденье":
+            return tmdb_response([{"id": 7, "title": "The Way Way Back", "original_title": "The Way Way Back"}])
+        return tmdb_response([])
+    md = Message_data(title="Дорога, дорога домой", alternative_title=None, year=2013,
+                      titles=["Дорога, дорога домой", "На заднем сиденье"])
+    with patch("src.tmdb_api.requests.get", side_effect=fake_get) as get:
+        assert tmdb.get_id_tmdb(md) == 7
+    assert get.call_count == 2
+
+
+def test_tmdb_queries_english_title_first():
+    with patch("src.tmdb_api.requests.get", return_value=tmdb_response([{"id": 9}])) as get:
+        assert tmdb.get_id_tmdb(WAY_BACK) == 9
+    assert get.call_args_list[0].kwargs["params"]["query"] == "The Way Way Back"
+
+
+def test_tmdb_gives_up_after_all_titles():
+    with patch("src.tmdb_api.requests.get", return_value=tmdb_response([])) as get:
+        assert tmdb.get_id_tmdb(WAY_BACK) == 0
+    assert get.call_count == 3
+
+
+def test_kinopoisk_matches_second_russian_title():
+    def fake_get(url, headers, params, timeout):
+        resp = MagicMock()
+        docs = [
+            {"id": 1, "year": 2013, "isSeries": False, "name": "Другой фильм", "alternativeName": "Other"},
+            {"id": 2, "year": 2013, "isSeries": False, "name": "Дорога, дорога домой", "alternativeName": "The Way, Way Back"},
+        ]
+        resp.json.return_value = {"total": len(docs), "docs": docs}
+        return resp
+    with patch("src.kinopoisk_api.requests.get", side_effect=fake_get):
+        assert kp.get_id_kinopoisk(WAY_BACK) == 2
+
+
+# --- русские фильмы (оригинальное название на русском) ----------------------
+SUDBA = Message_data(title="Судьба человека", year=1959, titles=["Судьба человека"])
+
+
+def test_tmdb_russian_film_single_result():
+    with patch("src.tmdb_api.requests.get",
+               return_value=tmdb_response([{"id": 25927, "title": "Судьба человека",
+                                            "original_title": "Судьба человека"}])) as get:
+        assert tmdb.get_id_tmdb(SUDBA) == 25927
+    params = get.call_args.kwargs["params"]
+    assert params == {"query": "Судьба человека", "year": 1959, "language": "ru-RU"}
+
+
+def test_tmdb_russian_film_several_results_match_original_title():
+    results = [
+        {"id": 1, "title": "Судьба человека: фильм о фильме", "original_title": "Судьба человека: фильм о фильме"},
+        {"id": 25927, "title": "Судьба человека", "original_title": "Судьба человека"},
+    ]
+    with patch("src.tmdb_api.requests.get", return_value=tmdb_response(results)):
+        assert tmdb.get_id_tmdb(SUDBA) == 25927
+
+
+def test_tmdb_matches_yo_and_e():
+    md = Message_data(title="Ёлки", year=2010, titles=["Ёлки"])
+    results = [{"id": 1, "title": "Елки", "original_title": "Елки"},
+               {"id": 2, "title": "Елки 2", "original_title": "Елки 2"}]
+    with patch("src.tmdb_api.requests.get", return_value=tmdb_response(results)):
+        assert tmdb.get_id_tmdb(md) == 1
+
+
+def test_tmdb_russian_title_match_for_foreign_film():
+    # с language=ru-RU title приходит по-русски, original_title - английский
+    results = [{"id": 1, "title": "Путь домой", "original_title": "The Way Home"},
+               {"id": 2, "title": "Дорога, дорога домой", "original_title": "The Way Way Back"}]
+    md = Message_data(title="Дорога, дорога домой", alternative_title="Way Back", year=2013,
+                      titles=["Дорога, дорога домой", "Way Back"])
+    with patch("src.tmdb_api.requests.get", return_value=tmdb_response(results)):
+        assert tmdb.get_id_tmdb(md) == 2
