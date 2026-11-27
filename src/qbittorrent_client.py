@@ -33,6 +33,27 @@ METADATA_MAX_RETRIES = 30  # ждем до 60 секунд (30 * 2)
 METADATA_RETRY_DELAY = 2
 
 
+def describe_error(e: Exception) -> str:
+    """Понятное пользователю описание ошибки qBittorrent"""
+    if isinstance(e, qbittorrentapi.LoginFailed):
+        return "не удалось войти в qBittorrent, проверь QB_USER и QB_PASSWORD в .env"
+    if isinstance(e, qbittorrentapi.Forbidden403Error):
+        return ("qBittorrent отказал в доступе (403). Возможно, IP бота заблокирован "
+                "после неудачных попыток входа - проверь логин/пароль и перезапусти qBittorrent")
+    if isinstance(e, qbittorrentapi.APIConnectionError):
+        return f"нет связи с qBittorrent ({QBITTORRENT_HOST}:{QBITTORRENT_PORT})"
+    return str(e) or type(e).__name__
+
+
+def check_connection() -> str:
+    """Проверить вход в qBittorrent при старте бота. Возвращает версию qBittorrent.
+    При ошибке выбрасывает исключение qbittorrentapi."""
+    if not QBITTORRENT_USERNAME or not QBITTORRENT_PASSWORD:
+        raise qbittorrentapi.LoginFailed("Не заданы QB_USER/QB_PASSWORD в .env")
+    client.auth_log_in()
+    return client.app.version
+
+
 def get_info_hash(magnet_link: str) -> str:
     """Получить info hash из магнет ссылки в hex формате (нижний регистр).
     Поддерживаются hex (40 символов) и base32 (32 символа) варианты."""
@@ -58,7 +79,7 @@ def add_torrent_from_magnet(magnet, rename=None, path=None, tags_add=None):
         result = client.torrents_add(urls=magnet, rename=rename, save_path=path, tags=tags_add)
     except qbittorrentapi.exceptions.APIError as e:
         logger.exception("Ошибка API при добавлении торрента")
-        return f"Ошибка API при добавлении торрента: {e}"
+        return f"Ошибка при добавлении торрента: {describe_error(e)}"
     except Exception as e:
         logger.exception("Ошибка при добавлении торрента")
         return f"Ошибка при добавлении торрента: {e}"

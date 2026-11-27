@@ -20,6 +20,15 @@ bot = telebot.TeleBot(TG_BOT_TOKEN)
 WHITELIST = get_allowed_users(env_keys, config)
 
 
+def startup_checks():
+    """Проверки при старте: пишем в лог понятную причину, если qBittorrent недоступен"""
+    try:
+        version = qb.check_connection()
+        logger.info("Подключение к qBittorrent: OK, версия %s", version)
+    except Exception as e:
+        logger.error("Подключение к qBittorrent не удалось: %s", qb.describe_error(e))
+
+
 def safe_reply(message, text):
     """Ответить на сообщение, не роняя обработчик при ошибке Telegram API"""
     try:
@@ -41,7 +50,7 @@ def echo_all(message):
     except Exception as e:
         # Любая непредвиденная ошибка: логируем и сообщаем пользователю, а не молчим
         logger.exception("Ошибка при обработке сообщения")
-        safe_reply(message, f"Ошибка при обработке сообщения: {e}")
+        safe_reply(message, f"Ошибка при обработке сообщения: {qb.describe_error(e)}")
 
 
 def process_message(message):
@@ -62,7 +71,7 @@ def process_message(message):
     except Exception as e:
         # requests (external сервис), qbittorrentapi и GetInfoFromMagnet (qb), MetadataError
         logger.exception("Не удалось получить метаданные торрента")
-        safe_reply(message, f"Торрент не найден! ({e})")
+        safe_reply(message, f"Не удалось получить список файлов торрента: {qb.describe_error(e)}")
         return
 
     logger.info("Метаданные: name=%s, inDir=%s, isMovies=%s, files=%s",
@@ -113,5 +122,6 @@ def process_message(message):
 
 
 if __name__ == '__main__':
+    startup_checks()
     logger.info("Бот запущен...")
     bot.infinity_polling()
