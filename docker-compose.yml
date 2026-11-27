@@ -9,3 +9,4 @@ services:
       - QB_USER=${QB_USER}
       - QB_PASSWORD=${QB_PASSWORD}
       - TMDB_API=${TMDB_API}
+      - ALLOWED_USERS=${ALLOWED_USERS}

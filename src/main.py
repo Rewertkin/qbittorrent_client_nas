@@ -6,7 +6,7 @@ from . import tmdb_api as tmdb
 from . import qbittorrent_client as qb
 from .message_tools import Message_data
 from .metadata_tools import Metadata, get_name_torrent
-from .config_data import env_keys, config
+from .config_data import env_keys, config, get_allowed_users
 from .config_logger import setup_logging
 
 
@@ -17,7 +17,7 @@ logger.info("Логирование запущено")
 TG_BOT_TOKEN = env_keys.TG_BOT_TOKEN
 bot = telebot.TeleBot(TG_BOT_TOKEN)
 
-WHITELIST = config.allowed_users
+WHITELIST = get_allowed_users(env_keys, config)
 
 
 def safe_reply(message, text):
